@@ -4,16 +4,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { DialogTrigger } from '@/components/ui/dialog';
 import { useNoteDialog } from '@/lib/note-dialog-context';
+import { NotesDialog } from '@/components/ui/notes-dialog';
 
 interface Note {
   id: string;
@@ -23,82 +16,6 @@ interface Note {
   updatedAt: Date;
 }
 
-interface NewNoteDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onAddNote: (title: string, content: string) => void;
-}
-
-function NewNoteDialog({ open, onOpenChange, onAddNote }: NewNoteDialogProps) {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-
-  const handleSubmit = () => {
-    if (title.trim() && content.trim()) {
-      onAddNote(title.trim(), content.trim());
-      setTitle('');
-      setContent('');
-      onOpenChange(false);
-    }
-  };
-
-  const handleCancel = () => {
-    setTitle('');
-    setContent('');
-    onOpenChange(false);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Neue Notiz erstellen</DialogTitle>
-          <DialogDescription>
-            Erstelle eine neue Notiz mit Titel und Inhalt.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <label htmlFor="note-title" className="text-sm font-medium">
-              Titel
-            </label>
-            <Input
-              id="note-title"
-              placeholder="Titel der Notiz"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
-          <div className="grid gap-2">
-            <label htmlFor="note-content" className="text-sm font-medium">
-              Inhalt
-            </label>
-            <label htmlFor="note-content-textarea" className="sr-only">
-              Inhalt der Notiz
-            </label>
-            <textarea
-              id="note-content-textarea"
-              placeholder="Inhalt der Notiz..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="w-full min-h-[100px] p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-              rows={4}
-              aria-label="Inhalt der neuen Notiz"
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={handleCancel}>
-            Abbrechen
-          </Button>
-          <Button onClick={handleSubmit}>
-            Notiz erstellen
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 export default function NotesPage() {
   const [notes, setNotes] = useState<Note[]>([
@@ -137,24 +54,6 @@ export default function NotesPage() {
     setEditContent(note.content);
   };
 
-  const saveEdit = () => {
-    if (editingNote && editTitle.trim() && editContent.trim()) {
-      setNotes(notes.map(note =>
-        note.id === editingNote.id
-          ? { ...note, title: editTitle.trim(), content: editContent.trim(), updatedAt: new Date() }
-          : note
-      ));
-      setEditingNote(null);
-      setEditTitle('');
-      setEditContent('');
-    }
-  };
-
-  const cancelEdit = () => {
-    setEditingNote(null);
-    setEditTitle('');
-    setEditContent('');
-  };
 
   return (
     <div className="flex flex-col h-full w-full p-6">
@@ -167,66 +66,20 @@ export default function NotesPage() {
 
       {/* Dialog und Trigger-Button */}
       <div className="mb-6">
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <NotesDialog
+          mode="create"
+          open={isOpen}
+          onOpenChange={setIsOpen}
+          onSubmit={(title, content) => {
+            addNote(title, content);
+          }}
+        >
           <DialogTrigger asChild>
             <Button className="w-full">
               Neue Notiz erstellen
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Neue Notiz erstellen</DialogTitle>
-              <DialogDescription>
-                Erstelle eine neue Notiz mit Titel und Inhalt.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <label htmlFor="note-title" className="text-sm font-medium">
-                  Titel
-                </label>
-                <Input
-                  id="note-title"
-                  placeholder="Titel der Notiz"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <label htmlFor="note-content" className="text-sm font-medium">
-                  Inhalt
-                </label>
-                <label htmlFor="note-content-textarea" className="sr-only">
-                  Inhalt der Notiz
-                </label>
-                <textarea
-                  id="note-content-textarea"
-                  placeholder="Inhalt der Notiz..."
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  className="w-full min-h-[100px] p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                  rows={4}
-                  aria-label="Inhalt der neuen Notiz"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsOpen(false)}>
-                Abbrechen
-              </Button>
-              <Button onClick={() => {
-                if (editTitle.trim() && editContent.trim()) {
-                  addNote(editTitle.trim(), editContent.trim());
-                  setEditTitle('');
-                  setEditContent('');
-                  setIsOpen(false);
-                }
-              }}>
-                Notiz erstellen
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        </NotesDialog>
       </div>
 
       <Separator className="mb-6" />
@@ -242,32 +95,31 @@ export default function NotesPage() {
             {notes.map((note) => (
               <div key={note.id} className="border rounded-lg p-4 bg-card hover:shadow-md transition-shadow">
                 {editingNote?.id === note.id ? (
-                  <div className="space-y-3">
-                    <Input
-                      value={editTitle}
-                      onChange={(e) => setEditTitle(e.target.value)}
-                      placeholder="Titel bearbeiten"
-                    />
-                    <label htmlFor="edit-note-content" className="sr-only">
-                      Inhalt bearbeiten
-                    </label>
-                    <textarea
-                      id="edit-note-content"
-                      value={editContent}
-                      onChange={(e) => setEditContent(e.target.value)}
-                      className="w-full min-h-[80px] p-2 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                      rows={3}
-                      aria-label="Inhalt der Notiz bearbeiten"
-                    />
-                    <div className="flex gap-2">
-                      <Button onClick={saveEdit} size="sm">
-                        Speichern
-                      </Button>
-                      <Button onClick={cancelEdit} variant="outline" size="sm">
-                        Abbrechen
-                      </Button>
-                    </div>
-                  </div>
+                  <NotesDialog
+                    mode="edit"
+                    open={true}
+                    onOpenChange={(open) => {
+                      if (!open) {
+                        setEditingNote(null);
+                        setEditTitle('');
+                        setEditContent('');
+                      }
+                    }}
+                    onSubmit={(title, content) => {
+                      if (title.trim() && content.trim()) {
+                        setNotes(notes.map(n =>
+                          n.id === note.id
+                            ? { ...n, title: title.trim(), content: content.trim(), updatedAt: new Date() }
+                            : n
+                        ));
+                        setEditingNote(null);
+                        setEditTitle('');
+                        setEditContent('');
+                      }
+                    }}
+                    initialTitle={editTitle}
+                    initialContent={editContent}
+                  />
                 ) : (
                   <div>
                     <h3 className="font-semibold text-lg mb-2 line-clamp-2">
@@ -286,7 +138,11 @@ export default function NotesPage() {
                     </div>
                     <div className="flex gap-2">
                       <Button
-                        onClick={() => startEdit(note)}
+                        onClick={() => {
+                          setEditingNote(note);
+                          setEditTitle(note.title);
+                          setEditContent(note.content);
+                        }}
                         variant="outline"
                         size="sm"
                         className="flex-1"
