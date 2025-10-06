@@ -7,6 +7,8 @@ import { Separator } from '@/components/ui/separator';
 import { DialogTrigger } from '@/components/ui/dialog';
 import { useNoteDialog } from '@/lib/note-dialog-context';
 import { NotesDialog } from '@/components/ui/notes-dialog';
+import { DeleteNotesDialog } from '@/components/ui/delete-notes-dialog';
+import { Edit, Trash2 } from 'lucide-react';
 
 interface Note {
   id: string;
@@ -32,6 +34,8 @@ export default function NotesPage() {
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState<Note | null>(null);
 
   const addNote = (title: string, content: string) => {
     const newNote: Note = {
@@ -44,8 +48,14 @@ export default function NotesPage() {
     setNotes([newNote, ...notes]);
   };
 
-  const deleteNote = (id: string) => {
+  const confirmDeleteNote = (id: string) => {
     setNotes(notes.filter(note => note.id !== id));
+    setNoteToDelete(null);
+  };
+
+  const openDeleteDialog = (note: Note) => {
+    setNoteToDelete(note);
+    setDeleteDialogOpen(true);
   };
 
   const startEdit = (note: Note) => {
@@ -147,14 +157,16 @@ export default function NotesPage() {
                         size="sm"
                         className="flex-1"
                       >
+                        <Edit className="w-4 h-4 mr-2" />
                         Bearbeiten
                       </Button>
                       <Button
-                        onClick={() => deleteNote(note.id)}
+                        onClick={() => openDeleteDialog(note)}
                         variant="destructive"
                         size="sm"
                         className="flex-1"
                       >
+                        <Trash2 className="w-4 h-4 mr-2" />
                         Löschen
                       </Button>
                     </div>
@@ -165,6 +177,14 @@ export default function NotesPage() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteNotesDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={() => noteToDelete && confirmDeleteNote(noteToDelete.id)}
+        noteTitle={noteToDelete?.title || ''}
+      />
     </div>
   );
 }
