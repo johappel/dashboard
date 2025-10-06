@@ -127,6 +127,13 @@ export default function NotesPage() {
                         setEditContent('');
                       }
                     }}
+                    onDelete={() => {
+                      setNotes(notes.filter(n => n.id !== note.id));
+                      setEditingNote(null);
+                      setEditTitle('');
+                      setEditContent('');
+                    }}
+                    noteId={note.id}
                     initialTitle={editTitle}
                     initialContent={editContent}
                   />
