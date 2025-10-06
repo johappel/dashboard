@@ -4,6 +4,7 @@ import './globals.css';
 // Importiere sowohl die Sidebar als auch den SidebarProvider
 import { Sidebar, SidebarProvider, SidebarInset } from '@/components/ui/sidebar'; // NEU: SidebarInset
 import { Header } from '@/components/layout/header';
+import { NoteDialogProvider } from '@/lib/note-dialog-context';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -15,6 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             enableSystem
             disableTransitionOnChange
           >
+          <NoteDialogProvider>
           <SidebarProvider>
             <div className="flex h-screen w-full">
 
@@ -37,7 +39,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
             </div>
           </SidebarProvider>
-        </ThemeProvider>  
+          </NoteDialogProvider>
+        </ThemeProvider>
         
       </body>
     </html>
